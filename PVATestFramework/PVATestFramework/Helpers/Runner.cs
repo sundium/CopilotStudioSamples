@@ -612,7 +612,8 @@ namespace PVATestFramework.Console
                     // If the line contains a regex pattern it will check if matches
                     return Regex.IsMatch(receivedActivity.Text, pattern);
                 }
-                else if (!expectedActivity.Text.Equals(receivedActivity.Text, StringComparison.InvariantCultureIgnoreCase))
+                // Allow for new lines in chat file, json and/or activity text by completely unescaping both strings - Issue 218
+                else if (!expectedActivity.Text.CompletelyUnescape().Equals(receivedActivity.Text.CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase))
                 {
                     // This is a simple text to compare
                     return false;

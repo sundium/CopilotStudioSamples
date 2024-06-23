@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace PVATestFramework.Console.Helpers.Extensions
 {
@@ -47,6 +48,24 @@ namespace PVATestFramework.Console.Helpers.Extensions
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Used to unescape a string until it contains no more escape sequences or characters. Allows stings with differing levels of escaping to be compared
+        /// </summary>
+        /// <param name="input">The string to be completely unescaped</param>
+        /// <returns>The completely unescaped version of the string</returns>
+        internal static string CompletelyUnescape(this string input)
+        {
+            string inp = input;
+            string unesc = Regex.Unescape(inp);
+            while (inp.GetHashCode() != unesc.GetHashCode())
+            {
+                inp = unesc;
+                unesc = Regex.Unescape(inp);
+            }
+
+            return unesc;
         }
     }
 }
