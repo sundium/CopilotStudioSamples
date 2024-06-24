@@ -18,6 +18,7 @@ This solution will be able to run tests against a PVA Bot using Direct Line chan
 ![image](./Images/architecture-diagram.png)
 
 ## Platform
+
 The application was developed using .NET 6 as a console application and it supports the following platforms:
 - Windows
 - Linux
