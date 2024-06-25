@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Files\Chat\basic_transcript_channeldata_events.chat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Files\Chat\basic_transcript_channeldata.chat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

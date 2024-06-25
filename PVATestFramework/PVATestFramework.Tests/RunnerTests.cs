@@ -383,5 +383,15 @@ namespace PVATestFramework.Console.Tests
             var result = testRunner.Object.ConvertChatFileToJSON(Path.Combine(_chatFolder, inputFile), Path.Combine(_chatFolder, outputFile));
             Assert.IsTrue(result);
         }
+
+        [Test]
+        public void ConvertChatFileToJSONWithChannelDataPassed()
+        {
+            string inputFile = "basic_transcript_channeldata.chat";
+            string outputFile = "basic_transcript_channeldata.json";
+            var testRunner = new Mock<Runner>(_logger.Object, _fileHandler.Object);
+            var result = testRunner.Object.ConvertChatFileToJSON(Path.Combine(_chatFolder, inputFile), Path.Combine(_chatFolder, outputFile));
+            Assert.IsTrue(result);
+        }
     }
 }

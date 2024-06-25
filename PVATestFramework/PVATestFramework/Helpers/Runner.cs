@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using Activity = Microsoft.Bot.Connector.DirectLine.Activity;
 using LoggerExtensions = PVATestFramework.Console.Helpers.Extensions.LoggerExtensions;
+using Newtonsoft.Json.Linq;
 
 namespace PVATestFramework.Console
 {
@@ -183,6 +184,8 @@ namespace PVATestFramework.Console
                 var activityList = new List<Models.Activities.Activity>();
                 string filepath = fileHandler.GetFullPath(outputFile);
 
+                object? channelData = null;
+
 				if (!filepath.EndsWith(".json"))
 				{
                     throw new ArgumentException("The output file should have a .json extension.");
@@ -207,6 +210,8 @@ namespace PVATestFramework.Console
 						{
                             activityListContainer.Add(activityList);
 							activityList = new List<Models.Activities.Activity>();
+                            //reset channeldata for each conversation
+                            channelData = null;
                             continue;
                         }
                         else if (line.StartsWith("user:"))
@@ -224,10 +229,35 @@ namespace PVATestFramework.Console
                                     Type = Helpers.ActivityTypes.Message,
                                     Text = userText,
                                     From = new From(string.Empty, 1),
-                                    Timestamp = ToUnixTimeSeconds(DateTime.UtcNow)
+                                    Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
+                                    ChannelData = channelData
                                 };
                             }                            
 						}
+                        else if (line.StartsWith("userEvent:"))
+                        {
+                            var userEventRegex = new Regex(Regex.Escape("userEvent:"));
+                            var userEventText = userEventRegex.Replace(line, string.Empty, 1).Trim();
+
+                            var userEventInfo = JObject.Parse(userEventText);
+
+                            if (string.IsNullOrEmpty(userEventText) || userEventInfo == null)
+                            {
+                                throw new ArgumentException("The userEvent is invalid");
+                            }
+                            else
+                            {
+                                activity = new Models.Activities.Activity
+                                {
+                                    Type = ActivityTypes.Event,
+                                    From = new From("user", 1),
+                                    Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
+                                    ChannelData = channelData,
+                                    Name = (string)userEventInfo["Name"],
+                                    Value = (string)userEventInfo["Value"]
+                                };
+                            }
+                        }
                         else if (line.StartsWith("bot:"))
 						{
                             var botReg = new Regex(Regex.Escape("bot:"));
@@ -247,6 +277,30 @@ namespace PVATestFramework.Console
                                 };
                             }                            
 						}
+                        else if (line.StartsWith("botEvent:"))
+                        {
+                            var botEventRegex = new Regex(Regex.Escape("botEvent:"));
+                            var botEventText = botEventRegex.Replace(line, string.Empty, 1).Trim();
+
+                            var botEventInfo = JObject.Parse(botEventText);
+
+                            if (string.IsNullOrEmpty(botEventText) || botEventInfo == null)
+                            {
+                                throw new ArgumentException("The botEvent is invalid");
+                            }
+                            else
+                            {
+                                activity = new Models.Activities.Activity
+                                {
+                                    Type = ActivityTypes.Event,
+                                    From = new From("bot", 0),
+                                    Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
+                                    ChannelData = channelData,
+                                    Name = (string)botEventInfo["Name"],
+                                    Value = (string)botEventInfo["Value"]
+                                };
+                            }
+                        }
                         else if (line.StartsWith("suggested:"))
                         {
                             var suggestionRegex = new Regex(Regex.Escape("suggested:"));
@@ -281,6 +335,38 @@ namespace PVATestFramework.Console
                                     IntentCandidates = intentCandidates
                                 }
                             };
+                        }
+                        else if (line.StartsWith("channelData:"))
+                        {
+                            var channelDataRegex = new Regex("channelData:");
+                            var channelDataText = channelDataRegex.Replace(line, string.Empty, 1).Trim();
+
+                            if (string.IsNullOrEmpty(channelDataText))
+                            {
+                                channelData = null;
+                                continue;
+                            }
+                            else
+                            {
+                                channelData = JObject.Parse(channelDataText); 
+
+                                // if this is the first thing in the conversation (nothing in the activity list yet), add a startConversation event
+                                if(activityList.Count == 0)
+                                {
+                                    activity = new Models.Activities.Activity
+                                    {
+                                        Type = Helpers.ActivityTypes.Event,
+                                        From = new From(string.Empty, 1),
+                                        ChannelData = channelData,
+                                        Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
+                                        Name = "StartConversation"
+                                    };
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
                         }
                         else
                         {
@@ -412,7 +498,8 @@ namespace PVATestFramework.Console
 
                                 if (receivedActivity.Text != null && receivedActivity.Text.Equals(BotDefaultMessages.DYM, StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    expectedOptions = activity.Value?.IntentCandidates != null ? activity.Value?.IntentCandidates?.Select(o => o.IntentScore.Title).ToList() : new List<string>() { "No suggested topics found" };
+                                    // activity.Value redefined as type object?, so cast it back to type Value for this particular situation
+                                    expectedOptions = ((Value)(activity.Value))?.IntentCandidates != null ? ((Value)(activity.Value))?.IntentCandidates?.Select(o => o.IntentScore.Title).ToList() : new List<string>() { "No suggested topics found" };
 
                                     for (int i = 0; i < receivedOptions.Count; i++)
                                     {

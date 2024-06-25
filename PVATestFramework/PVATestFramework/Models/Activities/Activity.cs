@@ -28,13 +28,15 @@ namespace PVATestFramework.Console.Models.Activities
         public int Timestamp { get; set; }
         public From From { get; set; }
         public string ChannelId { get; set; }
-        public Value Value { get; set; }
+        public object Value { get; set; }
         public string TextFormat { get; set; }
         public string Text { get; set; }
         public List<Attachment> Attachments { get; set; }
         public string ReplyToId { get; set; }
         public List<object> SuggestedActions { get; set; }
         public int LineNumber { get; set; }
+        public object? ChannelData { get; set; } = null;
+        public string Name { get; set; }
     }
 
     public static class ActivityExtension
@@ -183,4 +185,5 @@ namespace PVATestFramework.Console.Models.Activities
         [JsonProperty("Title")]
         public string Title { get; set; }
     }
+
 }
