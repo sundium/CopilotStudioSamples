@@ -282,6 +282,23 @@ namespace PVATestFramework.Console
                                 }
                             };
                         }
+                        else if (line.StartsWith("attachment:"))
+                        {
+                            var attachmentRegex = new Regex(Regex.Escape("attachment:"));
+                            var attachmentTitle = attachmentRegex.Replace(line, string.Empty, 1).Trim();
+                            if (string.IsNullOrEmpty(attachmentTitle)){
+                                throw new ArgumentException("The attachment title is null or empty.");
+                            }
+                            else {
+                                var lastActivityList = activityList.Last();
+                                lastActivityList.Attachments = [new Attachment(Helpers.Content.BasicCard, new BasicCardContent
+                                    {
+                                        Title = attachmentTitle,
+                                        Images = new List<string>(),
+                                        Buttons = new List<string>()
+                                    })];
+                            }
+                        }
                         else
                         {
                             throw new Exception("The input file format is not valid.");
@@ -456,7 +473,6 @@ namespace PVATestFramework.Console
                                             logger.ForegroundColor($"Received: {receivedActivity.Text}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                             logger.ForegroundColor($"Line number: {activity.LineNumber}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         }
-
                                         if (activity.Attachments != null && activity.Attachments.Count > 0)
                                         {
                                             var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
@@ -617,9 +633,11 @@ namespace PVATestFramework.Console
                     // This is a simple text to compare
                     return false;
                 }
+                logger.Information($"Testing");
             }
             else if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
             {
+                logger.Information($"It entereed here");
                 // This is an adaptive card, so the structure comparison will be executed
                 var expectedAttachments = expectedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
                 var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
@@ -629,6 +647,8 @@ namespace PVATestFramework.Console
                 {
                     var expectedCard = AdaptiveCard.GetCardWithoutValues(expectedAttachments[i].ToJObject(true), settings);
                     var receivedCard = AdaptiveCard.GetCardWithoutValues(receivedAttachments[i].ToJObject(true), settings);
+                    logger.Information($"expected card: {expectedCard}");
+                    logger.Information($"received card: {receivedCard}");
                     if (!expectedCard.Equals(receivedCard, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return false;

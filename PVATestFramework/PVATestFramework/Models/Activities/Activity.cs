@@ -47,11 +47,16 @@ namespace PVATestFramework.Console.Models.Activities
 
     public class Attachment
     {
+        public Attachment(string contentType, Object content)
+        {
+            ContentType = contentType;
+            Content = content;
+        }
         [JsonProperty("contentType")]
         public string ContentType { get; set; }
 
         [JsonProperty("content")]
-        public Content Content { get; set; }
+        public Object Content { get; set; }
     }
 
     public class Action
@@ -118,6 +123,17 @@ namespace PVATestFramework.Console.Models.Activities
 
         [JsonProperty("version")]
         public string Version { get; set; }
+    }
+    public class BasicCardContent
+    {
+        [JsonProperty("title")]
+        public string Title { get; set; }
+
+        [JsonProperty("images")]
+        public List<string> Images { get; set; }
+
+        [JsonProperty("buttons")]
+        public List<string> Buttons { get; set; }
     }
 
     public class Data
