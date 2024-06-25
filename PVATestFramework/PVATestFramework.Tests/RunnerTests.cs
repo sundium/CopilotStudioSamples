@@ -9,12 +9,13 @@ using Serilog;
 namespace PVATestFramework.Console.Tests
 {
     public class RunnerTests
-	{
+    {
         private DirectLineOptions _dlOptions;
         private Mock<DirectLineClientBase> _directLineClient;
         private Mock<IFileHandler> _fileHandler;
         private Mock<ILogger> _logger;
         private List<Activity> _simpleActivityList;
+        private List<Activity> _simpleMultiLineActivityList;
         private List<Activity> _multipleActivityList;
         private List<Activity> _simpleAndMultipleActivityList;
         private List<Activity> _dymActivityList;
@@ -24,8 +25,8 @@ namespace PVATestFramework.Console.Tests
         private readonly string _chatFolder = Directory.GetCurrentDirectory() + @"\Files\Chat";
 
         [SetUp]
-		public void Setup()
-		{
+        public void Setup()
+        {
             _dlOptions = new DirectLineOptions("https://tokenEndpoint.test", new Uri("https://regionalEndpoint.test"));
 
             _directLineClient = new Mock<DirectLineClientBase>();
@@ -44,6 +45,20 @@ namespace PVATestFramework.Console.Tests
             _logger.Setup(logger => logger.Error(It.IsAny<string>()));
             _logger.Setup(logger => logger.Fatal(It.IsAny<string>()));
             _logger.Setup(logger => logger.ForContext(It.IsAny<string>(), It.IsAny<object>(), false)).Returns(_logger.Object);
+
+            _simpleMultiLineActivityList = new List<Activity>
+            {
+                new Activity()
+                {
+                     From = new ChannelAccount()
+                    {
+                        Id = Guid.NewGuid().ToString()
+                    },
+                    Type = "message",
+                    Text = "I am happy to help you place your order.\n\nI just need a few more details",
+                    Conversation = new ConversationAccount() { Id = Guid.NewGuid().ToString() }
+                }
+            };
 
             _simpleActivityList = new List<Activity>
             {
@@ -104,7 +119,7 @@ namespace PVATestFramework.Console.Tests
                     Type = "trace",
                     Text = "To clarify, did you mean:",
                     SuggestedActions = new SuggestedActions()
-                    { 
+                    {
                         Actions = new List<CardAction>()
                         {
                             new CardAction() { Title = "Open Hours" },
@@ -147,14 +162,14 @@ namespace PVATestFramework.Console.Tests
             _simpleAndMultipleActivityList.AddRange(_multipleActivityList);
         }
 
-		[Test]
-		public async Task RunTranscriptTestAsyncWithSingleConversationPassed()
-		{
+        [Test]
+        public async Task RunTranscriptTestAsyncWithSingleConversationPassed()
+        {
             _directLineClient.Setup(client => client.ReceiveActivitiesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_simpleActivityList);
             var testRunner = new Mock<Runner>(_logger.Object, _directLineClient.Object, _fileHandler.Object);
-			var result = await testRunner.Object.RunTranscriptTestAsync(_dlOptions, Path.Combine(_passTestFolder, "simple.json"), false);
-			Assert.IsTrue(result);
-		}
+            var result = await testRunner.Object.RunTranscriptTestAsync(_dlOptions, Path.Combine(_passTestFolder, "simple.json"), false);
+            Assert.IsTrue(result);
+        }
 
         [Test]
         public async Task RunTranscriptTestAsyncWithSingleConversationFailed()
@@ -162,6 +177,24 @@ namespace PVATestFramework.Console.Tests
             _directLineClient.Setup(client => client.ReceiveActivitiesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_simpleActivityList);
             var testRunner = new Mock<Runner>(_logger.Object, _directLineClient.Object, _fileHandler.Object);
             var result = await testRunner.Object.RunTranscriptTestAsync(_dlOptions, Path.Combine(_failTestFolder, "simple.json"), false);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public async Task RunTranscriptTestAsyncWithMultiLineConversationPassed()
+        {
+            _directLineClient.Setup(client => client.ReceiveActivitiesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_simpleMultiLineActivityList);
+            var testRunner = new Mock<Runner>(_logger.Object, _directLineClient.Object, _fileHandler.Object);
+            var result = await testRunner.Object.RunTranscriptTestAsync(_dlOptions, Path.Combine(_passTestFolder, "multiline.json"), false);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public async Task RunTranscriptTestAsyncWithMultiLineConversationFailed()
+        {
+            _directLineClient.Setup(client => client.ReceiveActivitiesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_simpleMultiLineActivityList);
+            var testRunner = new Mock<Runner>(_logger.Object, _directLineClient.Object, _fileHandler.Object);
+            var result = await testRunner.Object.RunTranscriptTestAsync(_dlOptions, Path.Combine(_failTestFolder, "multiline.json"), false);
             Assert.IsFalse(result);
         }
 
