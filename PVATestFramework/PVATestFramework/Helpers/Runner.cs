@@ -280,8 +280,8 @@ namespace PVATestFramework.Console
                                     Text = (string)userMessageInfo["Text"],
                                     Value = (string)userMessageInfo["Value"]
                                 };
-                            }
-                        }
+                            }                            
+						}
                         else if (line.StartsWith("bot:"))
 						{
                             var botReg = new Regex(Regex.Escape("bot:"));
@@ -360,6 +360,24 @@ namespace PVATestFramework.Console
                                 }
                             };
                         }
+                        else if (line.StartsWith("attachment:"))
+                        {
+                            var attachmentRegex = new Regex(Regex.Escape("attachment:"));
+                            var attachmentTitle = attachmentRegex.Replace(line, string.Empty, 1).Trim();
+                            if (string.IsNullOrEmpty(attachmentTitle)){
+                                throw new ArgumentException("The attachment title is null or empty.");
+                            }
+                            else {
+                                var lastActivityList = activityList.Last();
+                                lastActivityList.Attachments = [new Attachment(Helpers.Content.BasicCard, new BasicCardContent
+                                    {
+                                        Title = attachmentTitle,
+                                        Images = new List<string>(),
+                                        Buttons = new List<string>()
+                                    })];
+                                    continue;
+                            }
+                        }
                         else if (line.StartsWith("channelData:"))
                         {
                             var channelDataRegex = new Regex("channelData:");
@@ -396,7 +414,6 @@ namespace PVATestFramework.Console
                         {
                             throw new Exception("The input file format is not valid.");
                         }
-
                         activityList.Add(activity);
 					}
                     activityListContainer.Add(activityList);
@@ -570,20 +587,20 @@ namespace PVATestFramework.Console
                                             logger.ForegroundColor($"Received: {receivedActivity.Text}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                             logger.ForegroundColor($"Line number: {activity.LineNumber}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         }
-
-                                        if (activity.Attachments != null && activity.Attachments.Count > 0)
-                                        {
-                                            var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
-                                            var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
-
-                                            logger.ForegroundColor($"Expected: {string.Join(Environment.NewLine, expectedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
-                                            logger.ForegroundColor($"Received: {string.Join(Environment.NewLine, receivedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
-                                        }
+                                       
 
                                         testFailed = true;
                                     }
+                                     if (activity.Attachments != null && activity.Attachments.Count > 0 && !AssertActivityAttachment(activity, receivedActivity))
+                                    {
+                                        logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
+                                        var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
+                                        logger.ForegroundColor($"Expected: {string.Join(Environment.NewLine, expectedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        logger.ForegroundColor($"Received: {string.Join(Environment.NewLine, receivedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        testFailed = true;
+                                    }
                                 }
-
                                 userUtterance = string.Empty;
                                 csvRecord.Result = testFailed ? "Failed" : "Passed";
                                 logRecords.Add(csvRecord);
@@ -733,28 +750,42 @@ namespace PVATestFramework.Console
                     return false;
                 }
             }
-            else if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
+            else
+            {
+                return false;
+            }
+            return result;
+        }
+
+        private bool AssertActivityAttachment(Models.Activities.Activity expectedActivity, Activity receivedActivity)
+		{
+            bool result = true;
+            if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
             {
                 // This is an adaptive card, so the structure comparison will be executed
                 var expectedAttachments = expectedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
                 var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
                 var settings = new AdaptiveCardTranslatorSettings();
-
                 for (int i = 0; i < expectedActivity.Attachments.Count; i++)
                 {
                     var expectedCard = AdaptiveCard.GetCardWithoutValues(expectedAttachments[i].ToJObject(true), settings);
                     var receivedCard = AdaptiveCard.GetCardWithoutValues(receivedAttachments[i].ToJObject(true), settings);
+                    logger.Information($"expected card: {expectedAttachments[i]}");
+                    logger.Information($"received card: {receivedAttachments[i]}");
                     if (!expectedCard.Equals(receivedCard, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return false;
-                    }
+                    } 
+                    if (!expectedAttachments[i].Equals(receivedAttachments[i], StringComparison.InvariantCultureIgnoreCase) && expectedActivity.Attachments[i].ContentType == Helpers.Content.BasicCard)
+                    {
+                        return false;
+                    }      
                 }
             }
             else
             {
                 return false;
             }
-
             return result;
         }
 
