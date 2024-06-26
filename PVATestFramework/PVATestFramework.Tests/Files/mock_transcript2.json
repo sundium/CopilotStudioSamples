@@ -20,7 +20,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -40,7 +40,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -60,7 +60,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 }
             ]
         }

@@ -428,7 +428,10 @@ namespace PVATestFramework.Console
                                 var sendActivity = new Activity
                                 {
                                     Type = activity.Type,
-                                    Text = activity.Text
+                                    Text = activity.Text,
+                                    ChannelData = activity.ChannelData,
+                                    Name= activity.Name,
+                                    Value = activity.Value
                                 };
 
                                 userUtterance = sendActivity.Text;

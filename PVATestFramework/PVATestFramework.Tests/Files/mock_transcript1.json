@@ -29,7 +29,7 @@
                     },
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -49,7 +49,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -69,7 +69,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": [],
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -89,7 +89,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": null,
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -108,7 +108,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": null,
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -135,24 +135,8 @@
                     ],
                     "ChannelData": null,
                     "ReplyToId": null,
-                    "SuggestedActions": {
-                            "to": [],
-                            "actions": [
-                            {
-                                "type": "imBack",
-                                "title": "Select",
-                                "text": "Select",
-                                "value": "Select"
-                            },
-                            {
-                                "type": "imBack",
-                                "title": "Cancel",
-                                "text": "Cancel",
-                                "value": "Cancel"
-                            }
-                            ]
-                        },
-                    "LineNumber": null
+                    "SuggestedActions": null,
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -171,7 +155,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": null,
-                    "LineNumber": null
+                    "LineNumber": 0
                 },
                 {
                     "ValueType": "",
@@ -190,7 +174,7 @@
                     "ChannelData": null,
                     "ReplyToId": null,
                     "SuggestedActions": null,
-                    "LineNumber": null
+                    "LineNumber": 0
                 }
             ]
         }
