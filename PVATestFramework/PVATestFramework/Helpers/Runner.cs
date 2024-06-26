@@ -22,7 +22,7 @@ using Newtonsoft.Json.Linq;
 namespace PVATestFramework.Console
 {
     public class Runner
-	{
+    {
         private readonly ILogger logger;
         private readonly IFileHandler fileHandler;
         private readonly DirectLineClientBase directLineClient;
@@ -48,12 +48,12 @@ namespace PVATestFramework.Console
         /// <param name="cancellationToken"></param>
         /// <returns>boolean depending if the execution was successful or not</returns>
 		public async Task<bool> RunTranscriptTestAsync(DirectLineOptions options, string path, bool verbose = false, CancellationToken cancellationToken = default)
-		{
+        {
             logger.Information("The test has started...");
 
             try
-			{
-				var totalTests = 0;
+            {
+                var totalTests = 0;
                 var failedTests = 0;
                 var fileAttributes = fileHandler.GetFileAttributes(path);
                 var fileList = new List<string>();
@@ -72,8 +72,8 @@ namespace PVATestFramework.Console
                 logger.Information($"Using Direct Line endpoint: {options.RegionalEndpoint}");
 
                 foreach (var file in fileList)
-				{
-					logger.Information($"Testing with file: {file}");
+                {
+                    logger.Information($"Testing with file: {file}");
 
                     var activityList = await GetActivitiesFromTranscriptFile(file);
 
@@ -95,22 +95,22 @@ namespace PVATestFramework.Console
                         if (!result) failedTests++;
                     }
                 }
-             
-                logger.Information($"Test results:     {totalTests - failedTests} passed, {totalTests} total");                
+
+                logger.Information($"Test results:     {totalTests - failedTests} passed, {totalTests} total");
 
                 return failedTests == 0;
-			}
-			catch (JsonReaderException ex)
-			{
-				logger.ForegroundColor($"An error occurred while running the test. Details: The json file used as an input is not valid.", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
-				return false;
-			}
-			catch (Exception ex)
-			{
+            }
+            catch (JsonReaderException ex)
+            {
+                logger.ForegroundColor($"An error occurred while running the test. Details: The json file used as an input is not valid.", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
+                return false;
+            }
+            catch (Exception ex)
+            {
                 logger.ForegroundColor($"An error occurred while running the test. Details: {ex.Message}", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
                 return false;
-			}
-		}
+            }
+        }
 
         /// <summary>
         /// Run a scale test, sending N conversations to the bot
@@ -121,19 +121,19 @@ namespace PVATestFramework.Console
         /// <param name="verbose"></param>
         /// <returns>boolean depending if the execution was successful or not</returns>
 		public async Task<bool> RunScaleTestAsync(DirectLineOptions options, int totalAttempts, string path, bool verbose)
-		{
+        {
             logger.Information($"Running a Scale test (sending chat transcript {totalAttempts} times).");
 
             try
-			{
+            {
                 var succeededAttempts = 0;
                 for (int i = 0; i < totalAttempts; i++)
-				{
-					if (verbose) 
-					{ 
-						logger.Information($"Attempt {i+1}..."); 
-					}
-					try
+                {
+                    if (verbose)
+                    {
+                        logger.Information($"Attempt {i + 1}...");
+                    }
+                    try
                     {
                         var result = await RunTranscriptTestAsync(options, path, verbose);
                         if (result)
@@ -147,24 +147,24 @@ namespace PVATestFramework.Console
                     }
                 }
 
-				if (succeededAttempts == totalAttempts)
-				{
+                if (succeededAttempts == totalAttempts)
+                {
                     logger.ForegroundColor($"The chat transcript was sent to the bot successfully in {succeededAttempts} attempts.", LoggerExtensions.LogLevel.Information, LoggerExtensions.Green);
                     logger.ForegroundColor($"Scale test ended succesfully.", LoggerExtensions.LogLevel.Information, LoggerExtensions.Green);
                     return true;
                 }
-				else
-				{
+                else
+                {
                     logger.ForegroundColor($"The chat transcript was sent to the bot successfully in {succeededAttempts} attempts from {totalAttempts}.", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                     logger.ForegroundColor($"Scale test ended with errors.", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                     return false;
                 }
-			}
-			catch (Exception ex)
-			{
+            }
+            catch (Exception ex)
+            {
                 logger.ForegroundColor($"An error occurred while running the test. Details: {ex.Message}", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
                 return false;
-			}
+            }
         }
 
         /// <summary>
@@ -175,47 +175,47 @@ namespace PVATestFramework.Console
         /// <returns>boolean depending if the conversion was successful or not</returns>
         public bool ConvertChatFileToJSON(string path, string outputFile)
         {
-			try
-			{
+            try
+            {
                 logger.Information($"The conversion process has started...");
 
                 var line = string.Empty;
-				var activityListContainer = new List<List<Models.Activities.Activity>>();
+                var activityListContainer = new List<List<Models.Activities.Activity>>();
                 var activityList = new List<Models.Activities.Activity>();
                 string filepath = fileHandler.GetFullPath(outputFile);
 
                 object? channelData = null;
 
-				if (!filepath.EndsWith(".json"))
-				{
+                if (!filepath.EndsWith(".json"))
+                {
                     throw new ArgumentException("The output file should have a .json extension.");
-				}
-				if (!path.EndsWith(".chat"))
-				{
+                }
+                if (!path.EndsWith(".chat"))
+                {
                     throw new ArgumentException("The input file should have a .chat extension.");
-				}
+                }
 
-				using (StreamReader sr = new StreamReader(path))
-				{
+                using (StreamReader sr = new StreamReader(path))
+                {
                     fileHandler.DeleteFile(filepath);
 
-					while (null != (line = sr.ReadLine()))
-					{
+                    while (null != (line = sr.ReadLine()))
+                    {
                         var activity = new Models.Activities.Activity();
                         if (string.IsNullOrWhiteSpace(line.Trim()))
                         {
                             continue;
                         }
                         else if (line.Trim().Equals("<EOC>", StringComparison.InvariantCultureIgnoreCase))
-						{
+                        {
                             activityListContainer.Add(activityList);
-							activityList = new List<Models.Activities.Activity>();
+                            activityList = new List<Models.Activities.Activity>();
                             //reset channeldata for each conversation
                             channelData = null;
                             continue;
                         }
                         else if (line.StartsWith("user:"))
-						{
+                        {
                             var userReg = new Regex(Regex.Escape("user:"));
                             var userText = userReg.Replace(line, string.Empty, 1).Trim();
                             if (string.IsNullOrEmpty(userText))
@@ -232,8 +232,8 @@ namespace PVATestFramework.Console
                                     Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
                                     ChannelData = channelData
                                 };
-                            }                            
-						}
+                            }
+                        }
                         else if (line.StartsWith("userEvent:"))
                         {
                             var userEventRegex = new Regex(Regex.Escape("userEvent:"));
@@ -280,10 +280,10 @@ namespace PVATestFramework.Console
                                     Text = (string)userMessageInfo["Text"],
                                     Value = (string)userMessageInfo["Value"]
                                 };
-                            }                            
-						}
+                            }
+                        }
                         else if (line.StartsWith("bot:"))
-						{
+                        {
                             var botReg = new Regex(Regex.Escape("bot:"));
                             var botText = botReg.Replace(line, string.Empty, 1).Trim();
                             if (string.IsNullOrEmpty(botText))
@@ -299,8 +299,8 @@ namespace PVATestFramework.Console
                                     From = new From(string.Empty, 0),
                                     Timestamp = ToUnixTimeSeconds(DateTime.UtcNow)
                                 };
-                            }                            
-						}
+                            }
+                        }
                         else if (line.StartsWith("botEvent:"))
                         {
                             var botEventRegex = new Regex(Regex.Escape("botEvent:"));
@@ -364,10 +364,12 @@ namespace PVATestFramework.Console
                         {
                             var attachmentRegex = new Regex(Regex.Escape("attachment:"));
                             var attachmentTitle = attachmentRegex.Replace(line, string.Empty, 1).Trim();
-                            if (string.IsNullOrEmpty(attachmentTitle)){
+                            if (string.IsNullOrEmpty(attachmentTitle))
+                            {
                                 throw new ArgumentException("The attachment title is null or empty.");
                             }
-                            else {
+                            else
+                            {
                                 var lastActivityList = activityList.Last();
                                 lastActivityList.Attachments = [new Attachment(Helpers.Content.BasicCard, new BasicCardContent
                                     {
@@ -375,14 +377,14 @@ namespace PVATestFramework.Console
                                         Images = new List<string>(),
                                         Buttons = new List<string>()
                                     })];
-                                    continue;
+                                continue;
                             }
                         }
                         else if (line.StartsWith("channelData:"))
                         {
                             var channelDataRegex = new Regex("channelData:");
                             var channelDataText = channelDataRegex.Replace(line, string.Empty, 1).Trim();
-                            
+
                             if (string.IsNullOrEmpty(channelDataText))
                             {
                                 channelData = null;
@@ -390,10 +392,10 @@ namespace PVATestFramework.Console
                             }
                             else
                             {
-                                channelData = JObject.Parse(channelDataText); 
+                                channelData = JObject.Parse(channelDataText);
 
                                 // if this is the first thing in the conversation (nothing in the activity list yet), add a startConversation event
-                                if(activityList.Count == 0)
+                                if (activityList.Count == 0)
                                 {
                                     activity = new Models.Activities.Activity
                                     {
@@ -407,15 +409,15 @@ namespace PVATestFramework.Console
                                 else
                                 {
                                     continue;
+                                }
                             }
-                        }
                         }
                         else
                         {
                             throw new Exception("The input file format is not valid.");
                         }
                         activityList.Add(activity);
-					}
+                    }
                     activityListContainer.Add(activityList);
 
                     var activities = new List<string>();
@@ -428,9 +430,9 @@ namespace PVATestFramework.Console
 
                 logger.Information($"The conversion process ended.");
                 return true;
-			}
-			catch (Exception ex)
-			{
+            }
+            catch (Exception ex)
+            {
                 logger.ForegroundColor($"An error occurred while converting the .chat transcript. Details: {ex.Message}", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
                 return false;
             }
@@ -447,7 +449,7 @@ namespace PVATestFramework.Console
         /// <returns>boolean depending if the conversion was successful or not</returns>
         /// <exception cref="InvalidOperationException"></exception>
         private async Task<bool> ExecuteTranscriptAsync(DirectLineOptions options, ActivityList activityList, string path, bool verbose = false, CancellationToken cancellationToken = default)
-		{
+        {
             var logRecords = new List<LogCSV>();
             var activities = new List<Activity>();
             var timer = new Stopwatch();
@@ -471,7 +473,7 @@ namespace PVATestFramework.Console
                                     Type = activity.Type,
                                     Text = activity.Text,
                                     ChannelData = activity.ChannelData,
-                                    Name= activity.Name,
+                                    Name = activity.Name,
                                     Value = activity.Value
                                 };
 
@@ -587,22 +589,9 @@ namespace PVATestFramework.Console
                                             logger.ForegroundColor($"Received: {receivedActivity.Text}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                             logger.ForegroundColor($"Line number: {activity.LineNumber}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         }
-                                       
-
                                         testFailed = true;
                                     }
-                                     if (activity.Attachments != null && activity.Attachments.Count > 0 && !AssertActivityAttachment(activity, receivedActivity))
-                                    {
-                                        logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
-                                        var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
-                                        var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
-                                        logger.ForegroundColor($"Expected: {string.Join(Environment.NewLine, expectedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
-                                        logger.ForegroundColor($"Received: {string.Join(Environment.NewLine, receivedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
-                                       
-
-                                        testFailed = true;
-                                    }
-                                     if (activity.Attachments != null && activity.Attachments.Count > 0 && !AssertActivityAttachment(activity, receivedActivity))
+                                    if (activity.Attachments != null && activity.Attachments.Count > 0 && !AssertActivityAttachment(activity, receivedActivity))
                                     {
                                         logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
@@ -647,35 +636,35 @@ namespace PVATestFramework.Console
             }
         }
 
-		/// <summary>
-		/// Receives an activityList from a transcript file
-		/// </summary>
-		/// <param name="fileName"></param>
-		/// <returns>an activityList</returns>
-		private async Task<ActivityList> GetActivitiesFromTranscriptFile(string fileName)
-		{
-			using var reader = new StreamReader(fileName);
-			var transcript = await reader.ReadToEndAsync().ConfigureAwait(false);
-			var activityList = JsonConvert.DeserializeObject<ActivityList>(transcript);
+        /// <summary>
+        /// Receives an activityList from a transcript file
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns>an activityList</returns>
+        private async Task<ActivityList> GetActivitiesFromTranscriptFile(string fileName)
+        {
+            using var reader = new StreamReader(fileName);
+            var transcript = await reader.ReadToEndAsync().ConfigureAwait(false);
+            var activityList = JsonConvert.DeserializeObject<ActivityList>(transcript);
 
             if (activityList.Activities.Count == 0 && activityList.list_of_conversations.Count == 0)
             {
                 throw new JsonReaderException();
             }
             else if (activityList.list_of_conversations.Count > 0)
-			{
+            {
                 foreach (var activities in activityList.list_of_conversations)
                 {
                     AddTextLineNumber(activities, fileName);
                 }
             }
             else
-			{
+            {
                 AddTextLineNumber(activityList, fileName);
             }
 
-			return activityList;
-		}
+            return activityList;
+        }
 
         /// <summary>
         /// Gets the line number for the activity text
@@ -683,7 +672,7 @@ namespace PVATestFramework.Console
         /// <param name="activityList"></param>
         /// <param name="fileName"></param>
 		private void AddTextLineNumber(ActivityList activityList, string fileName)
-		{
+        {
             var lineNumber = 0;
             var lines = File.ReadLines(fileName).ToList();
 
@@ -711,27 +700,27 @@ namespace PVATestFramework.Console
             };
 
             if (!File.Exists(csvLogPath))
-			{
+            {
                 using (var streamWriter = new StreamWriter(csvLogPath))
                 {
                     using (var csvWriter = new CsvWriter(streamWriter, config))
                     {
                         csvWriter.WriteHeader<LogCSV>();
-						csvWriter.NextRecord();
+                        csvWriter.NextRecord();
                     }
                 }
             }
 
-			using (var stream = File.Open(csvLogPath, FileMode.Append))
-			{
-				using (var streamWriter = new StreamWriter(stream))
-				{
-					using (var csvWriter = new CsvWriter(streamWriter, config))
-					{						
-						csvWriter.WriteRecords(records);
-					}
-				}
-			}
+            using (var stream = File.Open(csvLogPath, FileMode.Append))
+            {
+                using (var streamWriter = new StreamWriter(stream))
+                {
+                    using (var csvWriter = new CsvWriter(streamWriter, config))
+                    {
+                        csvWriter.WriteRecords(records);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -741,7 +730,7 @@ namespace PVATestFramework.Console
         /// <param name="receivedActivity"></param>
         /// <returns>boolean</returns>
 		private bool AssertActivity(Models.Activities.Activity expectedActivity, Activity receivedActivity)
-		{
+        {
             bool result = true;
             if (!string.IsNullOrEmpty(expectedActivity.Text) && !string.IsNullOrEmpty(receivedActivity.Text))
             {
@@ -769,18 +758,7 @@ namespace PVATestFramework.Console
         }
 
         private bool AssertActivityAttachment(Models.Activities.Activity expectedActivity, Activity receivedActivity)
-		{
-            bool result = true;
-            if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
-            else
-            {
-                return false;
-            }
-            return result;
-        }
-
-        private bool AssertActivityAttachment(Models.Activities.Activity expectedActivity, Activity receivedActivity)
-		{
+        {
             bool result = true;
             if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
             {
@@ -797,16 +775,11 @@ namespace PVATestFramework.Console
                     if (!expectedCard.Equals(receivedCard, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return false;
-                    } 
+                    }
                     if (!expectedAttachments[i].Equals(receivedAttachments[i], StringComparison.InvariantCultureIgnoreCase) && expectedActivity.Attachments[i].ContentType == Helpers.Content.BasicCard)
                     {
                         return false;
-                    } 
-                    if (!expectedAttachments[i].Equals(receivedAttachments[i], StringComparison.InvariantCultureIgnoreCase) && expectedActivity.Attachments[i].ContentType == Helpers.Content.BasicCard)
-                    {
-                        return false;
-                    }      
-                    }      
+                    }
                 }
             }
             else
@@ -816,20 +789,20 @@ namespace PVATestFramework.Console
             return result;
         }
 
-		/// <summary>
-		/// validate if the activity should be ignored
-		/// </summary>
-		/// <param name="activity"></param>
-		/// <returns>boolean</returns>
-		private bool IgnoreActivity(Models.Activities.Activity activity)
-		{
+        /// <summary>
+        /// validate if the activity should be ignored
+        /// </summary>
+        /// <param name="activity"></param>
+        /// <returns>boolean</returns>
+        private bool IgnoreActivity(Models.Activities.Activity activity)
+        {
             // Ignore trace activities unless it is an IntentCandidates type one. Also, ignore the DYM message as it is sent in the previous activity
             return (activity.Type == Helpers.ActivityTypes.Trace
                 && !activity.ValueType.Equals("IntentCandidates", StringComparison.InvariantCultureIgnoreCase))
                 || (activity.Type == Helpers.ActivityTypes.Message
                 && activity.Text != null
                 && activity.Text.Equals(BotDefaultMessages.DYM, StringComparison.InvariantCultureIgnoreCase));
-		}
+        }
 
         /// <summary>
         /// Extract the regex pattern
