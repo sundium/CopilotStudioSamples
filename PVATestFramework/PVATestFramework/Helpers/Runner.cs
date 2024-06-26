@@ -258,6 +258,30 @@ namespace PVATestFramework.Console
                                 };
                             }
                         }
+                        else if (line.StartsWith("userMessage:"))
+                        {
+                            var userMessageRegex = new Regex(Regex.Escape("userMessage:"));
+                            var userMessageText = userMessageRegex.Replace(line, string.Empty, 1).Trim();
+
+                            var userMessageInfo = JObject.Parse(userMessageText);
+
+                            if (string.IsNullOrEmpty(userMessageText) || userMessageInfo == null)
+                            {
+                                throw new ArgumentException("The userMessage is invalid");
+                            }
+                            else
+                            {
+                                activity = new Models.Activities.Activity
+                                {
+                                    Type = ActivityTypes.Message,
+                                    From = new From("user", 1),
+                                    Timestamp = ToUnixTimeSeconds(DateTime.UtcNow),
+                                    ChannelData = channelData,
+                                    Text = (string)userMessageInfo["Text"],
+                                    Value = (string)userMessageInfo["Value"]
+                                };
+                            }
+                        }
                         else if (line.StartsWith("bot:"))
 						{
                             var botReg = new Regex(Regex.Escape("bot:"));
