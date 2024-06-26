@@ -42,7 +42,10 @@ namespace PVATestFramework.Console.Helpers.DirectLine
                 {
                     Type = activity.Type,
                     From = _channelAccount,
-                    Text = activity.Text
+                    Text = activity.Text,
+                    ChannelData = activity.ChannelData,
+                    Name = activity.Name,
+                    Value = activity.Value
                 };
 
                 await _directLineClient.Conversations.PostActivityAsync(_conversation.ConversationId, activityPost, cancellationToken).ConfigureAwait(false);
