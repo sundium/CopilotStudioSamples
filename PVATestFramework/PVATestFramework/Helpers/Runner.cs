@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using PVATestFramework.Console.Helpers;
@@ -382,7 +382,7 @@ namespace PVATestFramework.Console
                         {
                             var channelDataRegex = new Regex("channelData:");
                             var channelDataText = channelDataRegex.Replace(line, string.Empty, 1).Trim();
-
+                            
                             if (string.IsNullOrEmpty(channelDataText))
                             {
                                 channelData = null;
@@ -407,8 +407,8 @@ namespace PVATestFramework.Console
                                 else
                                 {
                                     continue;
-                                }
                             }
+                        }
                         }
                         else
                         {
@@ -598,6 +598,17 @@ namespace PVATestFramework.Console
                                         var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
                                         logger.ForegroundColor($"Expected: {string.Join(Environment.NewLine, expectedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         logger.ForegroundColor($"Received: {string.Join(Environment.NewLine, receivedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                       
+
+                                        testFailed = true;
+                                    }
+                                     if (activity.Attachments != null && activity.Attachments.Count > 0 && !AssertActivityAttachment(activity, receivedActivity))
+                                    {
+                                        logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        var expectedAttachments = activity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
+                                        var receivedAttachments = receivedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
+                                        logger.ForegroundColor($"Expected: {string.Join(Environment.NewLine, expectedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        logger.ForegroundColor($"Received: {string.Join(Environment.NewLine, receivedAttachments)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         testFailed = true;
                                     }
                                 }
@@ -761,6 +772,17 @@ namespace PVATestFramework.Console
 		{
             bool result = true;
             if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
+            else
+            {
+                return false;
+            }
+            return result;
+        }
+
+        private bool AssertActivityAttachment(Models.Activities.Activity expectedActivity, Activity receivedActivity)
+		{
+            bool result = true;
+            if (expectedActivity.Attachments != null && expectedActivity.Attachments.Count == receivedActivity.Attachments.Count)
             {
                 // This is an adaptive card, so the structure comparison will be executed
                 var expectedAttachments = expectedActivity.Attachments.Select(a => JsonConvert.SerializeObject(a.Content)).ToList();
@@ -779,6 +801,11 @@ namespace PVATestFramework.Console
                     if (!expectedAttachments[i].Equals(receivedAttachments[i], StringComparison.InvariantCultureIgnoreCase) && expectedActivity.Attachments[i].ContentType == Helpers.Content.BasicCard)
                     {
                         return false;
+                    } 
+                    if (!expectedAttachments[i].Equals(receivedAttachments[i], StringComparison.InvariantCultureIgnoreCase) && expectedActivity.Attachments[i].ContentType == Helpers.Content.BasicCard)
+                    {
+                        return false;
+                    }      
                     }      
                 }
             }
