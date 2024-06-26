@@ -1,0 +1,9 @@
+channelData: { "AssetType": "iOS_Mobile_CommBank_app", "AssetVersion": "5.12.0.12344", "Cif": "123456789", "ClientIp": "122.12.23.12", "WebtrackerId": "12345ds1-12dasd-as112-asd", "NetbankId": "123456789", "isStepUp": true, "CorelationId": "7a988c-asd233-ca23-2435fe" }
+user: buy items
+bot: I am happy to help you place your order.
+<EOC>
+user: buy online
+bot: I am happy to help you place your order.
+<EOC>
+user: buy product
+bot: I am happy to help you place your order.

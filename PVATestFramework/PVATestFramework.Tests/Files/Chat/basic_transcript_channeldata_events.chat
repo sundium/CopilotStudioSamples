@@ -1,0 +1,6 @@
+channelData: { "AssetType": "iOS_Mobile_CommBank_app", "AssetVersion": "5.12.0.12344", "Cif": "123456789", "ClientIp": "122.12.23.12", "WebtrackerId": "12345ds1-12dasd-as112-asd", "NetbankId": "123456789", "isStepUp": true, "CorelationId": "7a988c-asd233-ca23-2435fe" }
+channelData:
+botEvent: { "Name": "EndOfResponse"}
+user: Hi
+bot: Hello, how can I help you today?
+botEvent: { "Name": "Generic.AccountSelector", "Value": "{\"accounts\":[{\"accountBalance\":0.0,\"accountBalanceCurrencyCode\":\"AUD\",\"accountNumber\":\"0623709098987429\",\"availableBalance\":0.0,\"availableBalanceCurrencyCode\":\"AUD\",\"displayAccountName\":\"HomeLoan\",\"displayAmount\":0.0,\"displayAmountCurrencyCode\":\"AUD\",\"displayAmountText\":\"Accountbalance\",\"formattedAccountNumber\":\"062-3709098987429\",\"imageName\":\"homeLoanImage\",\"productCode\":\"LAH\",\"productName\":\"HomeLoan\",\"productSubCode\":\"06\",\"recordId\":\"aa97e175-df09-42f5-aa0b-7654acddbc3d,3f3c406e-16e4-475a-8ba7-78c501c092c5\",\"status\":\"Closed\",\"type\":\"Account\"}]}"}
