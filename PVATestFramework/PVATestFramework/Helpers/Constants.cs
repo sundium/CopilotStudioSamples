@@ -16,6 +16,11 @@ namespace PVATestFramework.Console.Helpers
         public const int Bot = 0;
     }
 
+    public static class Content
+    {
+        public const string BasicCard = "application/vnd.microsoft.card.hero";
+    }
+
     public static class Constants
     {
         public const string DataverseTokenUri = "https://login.microsoftonline.com/{TenantId}/oauth2/v2.0/token";
