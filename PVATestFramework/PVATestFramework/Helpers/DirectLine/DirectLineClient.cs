@@ -75,7 +75,7 @@ namespace PVATestFramework.Console.Helpers.DirectLine
 
                     _watermark = response?.Watermark;
                     result = response?.Activities?.Where(x =>
-                        x.Type == ActivityTypes.Message &&
+                        (x.Type == ActivityTypes.Message ||x.Type == ActivityTypes.Event) &&
                         x.From.Name != null).ToList();
 
                     if (result != null && result.Any())

@@ -476,11 +476,19 @@ namespace PVATestFramework.Console
                                     Name = activity.Name,
                                     Value = activity.Value
                                 };
-
-                                userUtterance = sendActivity.Text;
-                                if (verbose)
-                                {
-                                    logger.Information($"User sends: {sendActivity.Text}");
+                                if (activity.Type == Helpers.ActivityTypes.Message){
+                                    userUtterance = sendActivity.Text;
+                                    if (verbose)
+                                    {
+                                        logger.Information($"User sends: {sendActivity.Text}");
+                                    }
+                                }
+                                if (activity.Type == Helpers.ActivityTypes.Event){
+                                    userUtterance = $"User {Helpers.ActivityTypes.Event}";
+                                    if (verbose)
+                                    {
+                                        logger.Information($"User sends event name: {activity.Name} and value: {activity.Value}");
+                                    }
                                 }
 
                                 await directLineClient.SendActivityAsync(sendActivity, cancellationToken).ConfigureAwait(false);
@@ -499,48 +507,76 @@ namespace PVATestFramework.Console
                                 if (activities.Count == 0)
                                 {
                                     activities = await directLineClient.ReceiveActivitiesAsync(cancellationToken).ConfigureAwait(false);
-
+                                    
                                     // Get the first activity from the bot response
                                     receivedActivity = activities.FirstOrDefault();
                                     activities.Remove(receivedActivity);
-
-                                    if (verbose)
-                                    {
-                                        logger.Information($"Bot sends: {receivedActivity.Text}");
-                                    }
-                                    if (receivedActivity.SuggestedActions != null)
-                                    {
-                                        // Get the suggested topics from the activity if any
-                                        receivedOptions = receivedActivity.SuggestedActions?.Actions?.Where(o => !o.Title.Equals(BotDefaultMessages.NoneOfThese, StringComparison.InvariantCultureIgnoreCase)).Select(a => a.Title).ToList();
-
+                                    
+                                    if (receivedActivity.Type == Helpers.ActivityTypes.Message){
                                         if (verbose)
                                         {
-                                            logger.Information($"\t{string.Join(" | ", receivedOptions)}");
+                                            logger.Information($"Bot sends: {receivedActivity.Text}");
+                                        }
+                                        if (receivedActivity.SuggestedActions != null)
+                                        {
+                                            // Get the suggested topics from the activity if any
+                                            receivedOptions = receivedActivity.SuggestedActions?.Actions?.Where(o => !o.Title.Equals(BotDefaultMessages.NoneOfThese, StringComparison.InvariantCultureIgnoreCase)).Select(a => a.Title).ToList();
+                                            if (verbose)
+                                            {
+                                                logger.Information($"\t{string.Join(" | ", receivedOptions)}");
+                                            }
                                         }
                                     }
+                                    else if (receivedActivity.Type == Helpers.ActivityTypes.Event) {
+                                        if(verbose){
+                                            logger.Information($"Bot sends event name: {receivedActivity.Name} and value: {receivedActivity.Value}");
+                                        }
+                                    }
+                                    
                                 }
                                 else
                                 {
                                     // Get the first activity from the list
                                     receivedActivity = activities.FirstOrDefault();
                                     activities.Remove(receivedActivity);
-
-                                    if (verbose)
-                                    {
-                                        logger.Information($"Bot sends: {receivedActivity.Text}");
+                                    if (receivedActivity.Type == Helpers.ActivityTypes.Message){
+                                        if (verbose)
+                                        {
+                                            logger.Information($"Bot sends: {receivedActivity.Text}");
+                                        }
+                                    }
+                                    else if (receivedActivity.Type == Helpers.ActivityTypes.Event) {
+                                        if(verbose){
+                                            logger.Information($"Bot sends event name: {receivedActivity.Name} and value: {receivedActivity.Value}");
+                                        }
                                     }
                                 }
-
-                                var csvRecord = new LogCSV()
+                                LogCSV csvRecord;
+                                if (receivedActivity.Type == Helpers.ActivityTypes.Event) {
+                                    csvRecord = new LogCSV()
+                                    {
+                                        BotId = receivedActivity.From.Id,
+                                        ConversationId = receivedActivity.Conversation.Id,
+                                        SessionDate = DateTime.Now.ToString(),
+                                        UserUtterance = $"Bot {Helpers.ActivityTypes.Event}",
+                                        ExpectedResponse = $"{activity.Name}|{(string)(activity.Value)}",
+                                        ReceivedResponse = $"{receivedActivity.Name}|{(string)(receivedActivity.Value)}",
+                                        TestFile = path
+                                    };
+                                }
+                                else
                                 {
-                                    BotId = receivedActivity.From.Id,
-                                    ConversationId = receivedActivity.Conversation.Id,
-                                    SessionDate = DateTime.Now.ToString(),
-                                    UserUtterance = userUtterance,
-                                    ExpectedResponse = activity.Text,
-                                    ReceivedResponse = receivedActivity.Text,
-                                    TestFile = path
-                                };
+                                    csvRecord = new LogCSV()
+                                    {
+                                        BotId = receivedActivity.From.Id,
+                                        ConversationId = receivedActivity.Conversation.Id,
+                                        SessionDate = DateTime.Now.ToString(),
+                                        UserUtterance = userUtterance,
+                                        ExpectedResponse = activity.Text,
+                                        ReceivedResponse = receivedActivity.Text,
+                                        TestFile = path
+                                    };
+                                }
 
                                 if (receivedActivity.Text != null && receivedActivity.Text.Equals(BotDefaultMessages.DYM, StringComparison.InvariantCultureIgnoreCase))
                                 {
@@ -575,6 +611,17 @@ namespace PVATestFramework.Console
                                         logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         logger.ForegroundColor($"Expected:\t{string.Join(" | ", expectedOptions)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
                                         logger.ForegroundColor($"Received:\t{string.Join(" | ", receivedOptions)}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                    }
+                                }
+                                else if (activity.Name!=null && activity.Type == Helpers.ActivityTypes.Event){
+                                    if (!AssertEventActivity(activity, receivedActivity)){
+                                        logger.ForegroundColor($"Test script failed", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        if (!string.IsNullOrEmpty(activity.Name) || !string.IsNullOrEmpty((string)(activity.Value))){
+                                            logger.ForegroundColor($"Expected: Name - {activity.Name} and Value - {activity.Value}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                            logger.ForegroundColor($"Received: Name - {receivedActivity.Name} and Value - {receivedActivity.Value}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                            logger.ForegroundColor($"Line number: {activity.LineNumber}", LoggerExtensions.LogLevel.Error, LoggerExtensions.Yellow);
+                                        }
+                                        testFailed = true;
                                     }
                                 }
                                 else
@@ -747,6 +794,25 @@ namespace PVATestFramework.Console
                 else if (!expectedActivity.Text.CompletelyUnescape().Equals(receivedActivity.Text.CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase))
                 {
                     // This is a simple text to compare
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return result;
+        }
+
+        private bool AssertEventActivity(Models.Activities.Activity expectedActivity, Activity receivedActivity)
+        {
+            bool result = true;
+            if (!string.IsNullOrEmpty(expectedActivity.Name) && !string.IsNullOrEmpty(receivedActivity.Name))
+            {
+                // Replace unwanted characters
+                receivedActivity.Name = receivedActivity.Name.Replace((char)0xA0, ' ');
+                if (!(expectedActivity.Name.CompletelyUnescape().Equals(receivedActivity.Name.CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase) && ((string)(expectedActivity.Value)).CompletelyUnescape().Equals(((string)(receivedActivity.Value)).CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase)))
+                {
                     return false;
                 }
             }
