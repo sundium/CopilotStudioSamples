@@ -116,7 +116,7 @@ namespace PVATestFramework.Console.Tests
                     {
                         Id = Guid.NewGuid().ToString()
                     },
-                    Type = "trace",
+                    Type = "message",
                     Text = "To clarify, did you mean:",
                     SuggestedActions = new SuggestedActions()
                     {

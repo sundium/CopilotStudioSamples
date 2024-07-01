@@ -580,9 +580,10 @@ namespace PVATestFramework.Console
 
                                 if (receivedActivity.Text != null && receivedActivity.Text.Equals(BotDefaultMessages.DYM, StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    // activity.Value redefined as type object?, so cast it back to type Value for this particular situation
-                                    expectedOptions = ((Value)(activity.Value))?.IntentCandidates != null ? ((Value)(activity.Value))?.IntentCandidates?.Select(o => o.IntentScore.Title).ToList() : new List<string>() { "No suggested topics found" };
-
+                                    // activity.Value redefined as type object?, so explicitly convert it back to type Value for this particular situation
+                                    // expectedOptions = (activity.Value as Value)?.IntentCandidates != null ? (activity.Value as Value)?.IntentCandidates?.Select(o => o.IntentScore.Title).ToList() : new List<string>() { "No suggested topics found" };
+                                    var val = JsonConvert.DeserializeObject<Value>(JsonConvert.SerializeObject(activity.Value));
+                                    expectedOptions = val?.IntentCandidates != null ? val?.IntentCandidates?.Select(o => o.IntentScore.Title).ToList() : new List<string>() { "No suggested topics found" };
                                     for (int i = 0; i < receivedOptions.Count; i++)
                                     {
                                         if (i == 0) csvRecord.DYM_Option1 = receivedOptions[i];
@@ -778,7 +779,7 @@ namespace PVATestFramework.Console
         /// <returns>boolean</returns>
 		private bool AssertActivity(Models.Activities.Activity expectedActivity, Activity receivedActivity)
         {
-            bool result = true;
+            bool result = false;
             if (!string.IsNullOrEmpty(expectedActivity.Text) && !string.IsNullOrEmpty(receivedActivity.Text))
             {
                 // Replace unwanted characters
@@ -791,15 +792,15 @@ namespace PVATestFramework.Console
                     return Regex.IsMatch(receivedActivity.Text, pattern);
                 }
                 // Allow for new lines in chat file, json and/or activity text by completely unescaping both strings - Issue 218
-                else if (!expectedActivity.Text.CompletelyUnescape().Equals(receivedActivity.Text.CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase))
+                else if (expectedActivity.Text.CompletelyUnescape().Equals(receivedActivity.Text.CompletelyUnescape(), StringComparison.InvariantCultureIgnoreCase))
                 {
                     // This is a simple text to compare
-                    return false;
+                    return true;
                 }
             }
-            else
+            else if (string.IsNullOrEmpty(expectedActivity.Text) && string.IsNullOrEmpty(receivedActivity.Text))
             {
-                return false;
+                return true;
             }
             return result;
         }
