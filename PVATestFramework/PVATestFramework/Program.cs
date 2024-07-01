@@ -273,7 +273,7 @@ namespace PVATestFramework.Console
                     .WriteTo.Conditional(logEvent => log, writeTo => writeTo.File($"log_{DateTime.Now.ToString("yyyyMMdd")}.txt"))
                     .CreateLogger();
                 var runner = new Runner(logger, new FileHandler());
-				var result = runner.ConvertChatFileToJSON(path, outputFile);
+				var result = runner.ConvertChatFilesToJSON(path, outputFile);
                 
                 Environment.Exit(result ? 0 : 1);
             }, pathOption, outputFileOption, logOption);

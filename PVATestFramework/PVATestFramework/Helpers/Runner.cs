@@ -166,7 +166,42 @@ namespace PVATestFramework.Console
                 return false;
             }
         }
-
+        public bool ConvertChatFilesToJSON(string inputPath, string outputPath)
+        {
+            var testFailed = false;
+            logger.Information($"The conversion process has started...");
+            try
+            {
+                var inputFileAttributes = fileHandler.GetFileAttributes(inputPath);
+                var outputFileAttributes = fileHandler.GetFullPath(outputPath);
+                if (inputFileAttributes.HasFlag(FileAttributes.Directory) && !outputFileAttributes.EndsWith(".json"))
+                {
+                    var fileList = fileHandler.GetFilesFromDirectory(inputPath, "*.chat").ToList();
+                    foreach (var inputFile in fileList)
+                    {
+                        var fileName = Path.GetFileNameWithoutExtension(inputFile);
+                        var outputFile = Path.Combine(outputPath, $"{fileName}.json");
+                        File.Create(outputFile).Dispose();
+                        testFailed = ConvertChatFileToJSON(inputFile, outputFile);
+                    }
+                }
+                else if (Path.GetExtension(inputPath).Equals(".chat", StringComparison.OrdinalIgnoreCase) && Path.GetExtension(outputPath).Equals(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    testFailed = ConvertChatFileToJSON(inputPath, outputPath);
+                }
+                else
+                {
+                    throw new ArgumentException("The input and output files are of incorrect extension.");
+                }
+                logger.Information($"The conversion process ended.");
+                return testFailed;
+            }
+            catch (Exception ex)
+            {
+                logger.ForegroundColor($"An error occurred while converting the .chat transcripts. Details: {ex.Message}", LoggerExtensions.LogLevel.Fatal, LoggerExtensions.Red);
+                return testFailed;
+            }
+        }
         /// <summary>
         /// Convert a .chat file into a .json file
         /// </summary>
@@ -177,7 +212,7 @@ namespace PVATestFramework.Console
         {
             try
             {
-                logger.Information($"The conversion process has started...");
+                //logger.Information($"The conversion process has started...");
 
                 var line = string.Empty;
                 var activityListContainer = new List<List<Models.Activities.Activity>>();
@@ -286,6 +321,8 @@ namespace PVATestFramework.Console
                         {
                             var botReg = new Regex(Regex.Escape("bot:"));
                             var botText = botReg.Replace(line, string.Empty, 1).Trim();
+                            botText = botText.Replace(@"\n", "\n");
+                            botText = botText.Replace(@"\s+", string.Empty).Trim();
                             if (string.IsNullOrEmpty(botText))
                             {
                                 throw new ArgumentException("The bot message is null or empty.");
@@ -428,7 +465,7 @@ namespace PVATestFramework.Console
                     fileHandler.WriteToFile(filepath, $"{{\"list_of_conversations\":[{string.Join(",", activities)}]}}");
                 }
 
-                logger.Information($"The conversion process ended.");
+                logger.Information($"The conversion process of {outputFile} ended.");
                 return true;
             }
             catch (Exception ex)
